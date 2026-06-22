@@ -1,0 +1,13 @@
+[project]
+name = "farmsight"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "earthengine-api>=1.7.31",
+    "google-adk>=2.3.0",
+    "google-genai>=2.9.0",
+    "mcp>=1.28.0",
+    "python-dotenv>=1.2.2",
+]

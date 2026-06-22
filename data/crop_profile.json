@@ -1,0 +1,131 @@
+{
+  "crop": "paddy",
+  "variety_note": "Tropical indica type; values reflect average of short-duration (120-day) and medium-duration (135-day) varieties common in Kerala",
+  "seasons": {
+    "kharif": {
+      "months": [6, 7, 8, 9, 10],
+      "sowing_month_default": 6,
+      "sowing_day_default": 1,
+      "harvest_days_after_sowing": 125,
+      "growth_stages": [
+        {
+          "stage": "nursery",
+          "days_after_sowing": [0, 21],
+          "description": "Seed germination and seedling growth in nursery beds",
+          "expected_ndvi_range": [0.1, 0.35],
+          "water_requirement_mm_per_week": 120
+        },
+        {
+          "stage": "transplanting_establishment",
+          "days_after_sowing": [21, 35],
+          "description": "Seedlings transplanted; roots establishing in main field",
+          "expected_ndvi_range": [0.2, 0.45],
+          "water_requirement_mm_per_week": 100
+        },
+        {
+          "stage": "tillering",
+          "days_after_sowing": [35, 65],
+          "description": "Active vegetative growth; maximum tiller production",
+          "expected_ndvi_range": [0.4, 0.75],
+          "water_requirement_mm_per_week": 90
+        },
+        {
+          "stage": "panicle_initiation",
+          "days_after_sowing": [65, 85],
+          "description": "Reproductive phase begins; critical water demand period",
+          "expected_ndvi_range": [0.55, 0.80],
+          "water_requirement_mm_per_week": 110
+        },
+        {
+          "stage": "heading_flowering",
+          "days_after_sowing": [85, 100],
+          "description": "Panicle emergence and pollination; most drought-sensitive stage",
+          "expected_ndvi_range": [0.5, 0.78],
+          "water_requirement_mm_per_week": 120
+        },
+        {
+          "stage": "grain_filling",
+          "days_after_sowing": [100, 115],
+          "description": "Starch accumulation in grains; NDVI begins declining",
+          "expected_ndvi_range": [0.35, 0.65],
+          "water_requirement_mm_per_week": 90
+        },
+        {
+          "stage": "ripening",
+          "days_after_sowing": [115, 130],
+          "description": "Grain maturation and drying; canopy senescence",
+          "expected_ndvi_range": [0.15, 0.45],
+          "water_requirement_mm_per_week": 40
+        }
+      ]
+    },
+    "rabi": {
+      "months": [11, 12, 1, 2, 3],
+      "sowing_month_default": 11,
+      "sowing_day_default": 1,
+      "harvest_days_after_sowing": 120,
+      "growth_stages": [
+        {
+          "stage": "nursery",
+          "days_after_sowing": [0, 21],
+          "description": "Seed germination and seedling growth in nursery beds",
+          "expected_ndvi_range": [0.1, 0.35],
+          "water_requirement_mm_per_week": 100
+        },
+        {
+          "stage": "transplanting_establishment",
+          "days_after_sowing": [21, 35],
+          "description": "Seedlings transplanted; roots establishing in main field",
+          "expected_ndvi_range": [0.2, 0.45],
+          "water_requirement_mm_per_week": 90
+        },
+        {
+          "stage": "tillering",
+          "days_after_sowing": [35, 65],
+          "description": "Active vegetative growth; maximum tiller production",
+          "expected_ndvi_range": [0.4, 0.72],
+          "water_requirement_mm_per_week": 80
+        },
+        {
+          "stage": "panicle_initiation",
+          "days_after_sowing": [65, 85],
+          "description": "Reproductive phase begins; critical water demand period",
+          "expected_ndvi_range": [0.55, 0.78],
+          "water_requirement_mm_per_week": 100
+        },
+        {
+          "stage": "heading_flowering",
+          "days_after_sowing": [85, 100],
+          "description": "Panicle emergence and pollination",
+          "expected_ndvi_range": [0.48, 0.75],
+          "water_requirement_mm_per_week": 110
+        },
+        {
+          "stage": "grain_filling",
+          "days_after_sowing": [100, 115],
+          "description": "Starch accumulation; NDVI begins declining",
+          "expected_ndvi_range": [0.32, 0.62],
+          "water_requirement_mm_per_week": 80
+        },
+        {
+          "stage": "ripening",
+          "days_after_sowing": [115, 125],
+          "description": "Grain maturation; canopy senescence",
+          "expected_ndvi_range": [0.12, 0.42],
+          "water_requirement_mm_per_week": 30
+        }
+      ]
+    }
+  },
+  "stress_indicators": {
+    "ndvi_below_range": "Possible causes: drought stress, pest/disease damage, nutrient deficiency (N), waterlogging-induced root damage",
+    "ndvi_above_range": "Possible causes: excessive vegetative growth (N toxicity), delayed maturity, weed competition increasing canopy",
+    "ndvi_rapid_decline": "Flag for: blast disease, brown planthopper, zinc deficiency, or premature drought-induced senescence"
+  },
+  "sources": [
+    "IRRI Rice Knowledge Bank - Water Management (irri.org/rice-knowledge-bank)",
+    "TNRRI (Tamil Nadu Rice Research Institute) crop calendar for tropical indica",
+    "Kerala Agricultural University crop production guide for Kharif/Rabi paddy",
+    "Doorenbos & Pruitt (1977) FAO Irrigation and Drainage Paper 24"
+  ]
+}
