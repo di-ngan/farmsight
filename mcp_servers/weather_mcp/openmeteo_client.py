@@ -12,7 +12,7 @@ _KERALA_MONTHLY_NORMAL_MM = {
 
 
 async def get_rainfall(lat: float, lon: float, lookback_days: int = 60) -> dict:
-    end = date.today()
+    end = date.today() - timedelta(days=5)  # archive has ~5-day lag
     start = end - timedelta(days=lookback_days)
     params = {
         "latitude": lat,

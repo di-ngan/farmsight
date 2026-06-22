@@ -1,5 +1,6 @@
 import json
 import asyncio
+import functools
 import sys
 import os
 
@@ -100,11 +101,16 @@ async def list_tools() -> list[Tool]:
 
 @server.call_tool()
 async def call_tool(name: str, arguments: dict) -> list[TextContent]:
+    loop = asyncio.get_event_loop()
     try:
         if name == "get_ndvi_trend":
-            result = tools.run_get_ndvi_trend(arguments)
+            result = await loop.run_in_executor(
+                None, functools.partial(tools.run_get_ndvi_trend, arguments)
+            )
         elif name == "get_field_snapshot":
-            result = tools.run_get_field_snapshot(arguments)
+            result = await loop.run_in_executor(
+                None, functools.partial(tools.run_get_field_snapshot, arguments)
+            )
         else:
             result = {"error": f"Unknown tool: {name}"}
     except ValueError as e:

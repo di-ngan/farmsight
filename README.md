@@ -9,7 +9,11 @@ It is not a dashboard. It is an investigation.
 ## Architecture
 
 ```
-Farmer input (lat/lon + question)
+Farmer input (natural language or CLI flags)
+            │
+            ▼
+   Input Parser Agent (LlmAgent)
+   extracts lat/lon/question → session state
             │
             ▼
    Coordinator (SequentialAgent)
@@ -33,6 +37,7 @@ Remote Sensing   Weather Agent
    Diagnosis + Action Plan
 ```
 
+- **Input Parser Agent** — `LlmAgent` that sits at the top of the pipeline (web UI mode only). Extracts lat/lon and the crop question from natural language and writes them into session state before the coordinator runs. Accepts place names ("Palakkad, Kerala") and infers approximate coordinates.
 - **Coordinator** — `SequentialAgent` that runs the three specialists in order and wires session state between them.
 - **Remote Sensing Agent** — wraps `sentinel_mcp` via ADK `McpToolset`. Returns raw NDVI time-series; no crop logic.
 - **Weather Agent** — wraps `weather_mcp` via ADK `McpToolset`. Returns 30-day rainfall and anomaly indicator; no crop logic.
@@ -84,13 +89,31 @@ cp .env.example .env
 
 ## Running
 
-### Demo (Palakkad paddy field, one command)
+### Interactive web UI (ADK Dev Console)
+
+Launch the ADK web interface for a conversational experience:
+
+```bash
+uv run adk web
+```
+
+Open [http://localhost:8000](http://localhost:8000) in your browser, select the **farmsight** agent, and describe your field in natural language:
+
+> "My paddy field is at latitude 10.7867, longitude 76.6548. Why are the leaves turning yellow?"
+
+> "I have a paddy farm near Palakkad, Kerala. The crop looks stunted — what's wrong?"
+
+The input parser agent extracts coordinates and your question automatically, then runs the full diagnosis pipeline.
+
+---
+
+### CLI — Demo (Palakkad paddy field, one command)
 
 ```bash
 uv run python main.py --demo
 ```
 
-### Custom location + question
+### CLI — Custom location + question
 
 ```bash
 uv run python main.py \
@@ -98,7 +121,7 @@ uv run python main.py \
   --question "Why are my paddy leaves turning yellow?"
 ```
 
-### With an exact field boundary (GeoJSON)
+### CLI — With an exact field boundary (GeoJSON)
 
 ```bash
 uv run python main.py \
@@ -110,7 +133,7 @@ Accepted GeoJSON types: `Polygon`, `Feature`, `FeatureCollection`. The first fea
 
 Without `--geojson`, a 100 m square buffer around the lat/lon is used. This is a stated simplification — it is not real field-boundary detection.
 
-### All flags
+### All CLI flags
 
 | Flag | Default | Description |
 |---|---|---|
@@ -177,13 +200,15 @@ The `docker-compose.yml` reads `GOOGLE_API_KEY`, `GEE_SERVICE_ACCOUNT_EMAIL`, an
 
 ```
 farmsight/
+├── agent.py                         # ADK web UI entrypoint (exports root_agent)
 ├── main.py                          # CLI entrypoint + report formatter
 ├── agents/
+│   ├── input_parser.py              # Extracts lat/lon/question from natural language
 │   ├── coordinator.py               # SequentialAgent orchestrator
 │   ├── remote_sensing.py            # Wraps sentinel_mcp via McpToolset
 │   ├── weather_agent.py             # Wraps weather_mcp via McpToolset
 │   ├── synthesis.py                 # Gemini reasoning agent
-│   └── runner.py                    # InMemoryRunner wiring
+│   └── runner.py                    # InMemoryRunner wiring (CLI only)
 ├── mcp_servers/
 │   ├── sentinel_mcp/                # Sentinel-2 GEE MCP server (stdio)
 │   │   ├── server.py

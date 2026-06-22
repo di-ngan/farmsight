@@ -11,8 +11,18 @@ wheels/
 
 # Credentials and secrets
 .env
+*.json.key
+secrets/
 
 # Dev cache
 dev_cache/
 .pytest_cache/
+
+# ADK web UI
+.adk/
+
+# IDE
+.vscode/
+.idea/
+
 BUILD_NOTES.md
