@@ -41,7 +41,8 @@ remote_sensing_agent = LlmAgent(
                     command=sys.executable,
                     args=[_SERVER_PATH],
                     env={**os.environ},
-                )
+                ),
+                timeout=60.0,  # GEE queries involve multiple round-trips; 5s default times out
             )
         )
     ],

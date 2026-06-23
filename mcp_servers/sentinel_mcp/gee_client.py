@@ -82,23 +82,20 @@ def get_ndvi_series(
     end = today.isoformat()
 
     aoi = parse_geometry(lat, lon, buffer_m, geojson_str)
-    geom_info = aoi.getInfo()
     geometry_source = "geojson_upload" if geojson_str else "point_buffer"
 
     fc = _build_ndvi_collection(aoi, start, end, max_cloud_pct)
-    count = fc.size().getInfo()
+    # Fetch up to 200 images directly; avoids a separate size().getInfo() round-trip
+    features = fc.toList(200).getInfo()
 
-    if count == 0:
+    if not features:
         return {
             "ndvi_series": [],
             "latest_image_date": None,
             "data_recency_days": None,
-            "geometry_used": geom_info,
             "geometry_source": geometry_source,
             "warning": f"No cloud-free imagery found in {lookback_days}-day window (max cloud {max_cloud_pct}%)",
         }
-
-    features = fc.toList(count).getInfo()
 
     series = []
     for feat in features:
@@ -123,7 +120,6 @@ def get_ndvi_series(
         "ndvi_series": series,
         "latest_image_date": latest_date,
         "data_recency_days": recency_days,
-        "geometry_used": geom_info,
         "geometry_source": geometry_source,
         "warning": None,
     }
@@ -141,24 +137,21 @@ def get_single_snapshot(
     end = today.isoformat()
 
     aoi = parse_geometry(lat, lon, buffer_m, geojson_str)
-    geom_info = aoi.getInfo()
     geometry_source = "geojson_upload" if geojson_str else "point_buffer"
 
     fc = _build_ndvi_collection(aoi, start, end, max_cloud_pct)
-    count = fc.size().getInfo()
+    features = fc.toList(200).getInfo()
 
-    if count == 0:
+    if not features:
         return {
             "date": None,
             "ndvi_mean": None,
             "ndvi_min": None,
             "ndvi_max": None,
-            "geometry_used": geom_info,
             "geometry_source": geometry_source,
             "warning": f"No cloud-free imagery found in 60-day window (max cloud {max_cloud_pct}%)",
         }
 
-    features = fc.toList(count).getInfo()
     features.sort(key=lambda f: f["properties"]["date"], reverse=True)
     props = features[0]["properties"]
 
@@ -167,7 +160,6 @@ def get_single_snapshot(
         "ndvi_mean": round(float(props.get("ndvi_mean") or 0), 4),
         "ndvi_min": round(float(props.get("ndvi_min") or 0), 4),
         "ndvi_max": round(float(props.get("ndvi_max") or 0), 4),
-        "geometry_used": geom_info,
         "geometry_source": geometry_source,
         "warning": None,
     }

@@ -1,6 +1,6 @@
 import datetime
 
-from google.adk.agents import SequentialAgent
+from google.adk.agents import ParallelAgent, SequentialAgent
 
 from agents.remote_sensing import remote_sensing_agent
 from agents.weather_agent import weather_agent
@@ -25,8 +25,14 @@ def days_after_sowing(season: str, today: datetime.date | None = None) -> int:
     return max(0, (today - sowing).days)
 
 
+_data_gathering = ParallelAgent(
+    name="data_gathering",
+    description="Fetches NDVI and rainfall data simultaneously",
+    sub_agents=[remote_sensing_agent, weather_agent],
+)
+
 coordinator = SequentialAgent(
     name="farmsight_coordinator",
     description="Orchestrates remote sensing, weather, and synthesis agents to diagnose crop stress",
-    sub_agents=[remote_sensing_agent, weather_agent, synthesis_agent],
+    sub_agents=[_data_gathering, synthesis_agent],
 )

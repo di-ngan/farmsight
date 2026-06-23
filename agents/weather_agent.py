@@ -31,7 +31,8 @@ weather_agent = LlmAgent(
                     command=sys.executable,
                     args=[_SERVER_PATH],
                     env={**os.environ},
-                )
+                ),
+                timeout=30.0,
             )
         )
     ],

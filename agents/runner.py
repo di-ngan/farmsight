@@ -57,7 +57,7 @@ async def run_diagnosis(
     print(f"Session: {session.id}")
     print(f"Season: {season} | Days after sowing: {das}")
     print(f"Geometry: {'GeoJSON upload' if geojson_str else f'point buffer ({lat}, {lon})'}")
-    print("Running: Remote Sensing → Weather → Synthesis\n")
+    print("Running: [Remote Sensing ‖ Weather] → Synthesis\n")
 
     async for event in runner.run_async(
         user_id="farmer",
