@@ -146,25 +146,84 @@ Without `--geojson`, a 100 m square buffer around the lat/lon is used. This is a
 
 ---
 
-## Docker
+## API
 
-Build and run the demo:
+FarmSight exposes a FastAPI backend on port `8000`.
+
+### Run locally
+
+```bash
+uv run uvicorn api.app:app --reload
+```
+
+Interactive docs available at [http://localhost:8000/docs](http://localhost:8000/docs).
+
+### Endpoints
+
+#### `GET /health`
+Returns `{"status": "ok"}`. Used by load balancers and container orchestrators.
+
+#### `POST /diagnose`
+
+```json
+{
+  "latitude": 10.7867,
+  "longitude": 76.6548,
+  "question": "Why are my paddy leaves turning yellow?",
+  "geojson": null
+}
+```
+
+Response:
+
+```json
+{
+  "diagnosis": "...",
+  "season": "kharif",
+  "days_after_sowing": 22,
+  "ndvi_result": { ... },
+  "rainfall_result": { ... }
+}
+```
+
+`geojson` is optional — pass a GeoJSON string (Polygon/Feature/FeatureCollection) to use an exact field boundary instead of the default 100 m point buffer.
+
+> **Timeout note:** Diagnosis runs the full GEE + LLM pipeline and typically takes 20–60 seconds. On Cloud Run, set `--timeout=120` when deploying. On first run with a cold GEE cache it may take longer.
+
+---
+
+## Docker
 
 ```bash
 docker compose up
 ```
 
-Run a custom query:
+The API is available at [http://localhost:8000](http://localhost:8000). `docker-compose.yml` reads `GOOGLE_API_KEY`, `GEE_SERVICE_ACCOUNT_EMAIL`, and `GEE_SERVICE_ACCOUNT_KEY_PATH` from the host `.env` file and mounts the key at `/secrets/gee-key.json`.
+
+A `CORS_ORIGINS` env var controls allowed origins (comma-separated). Defaults to `*`.
+
+> **Architecture note:** Both MCP servers (`sentinel_mcp`, `weather_mcp`) use stdio transport and are launched as subprocesses by their respective ADK agents inside the same container. They do not expose network ports.
+
+---
+
+## Deployment (Cloud Run)
 
 ```bash
-docker compose run farmsight uv run python main.py \
-  --lat 10.7867 --lon 76.6548 \
-  --question "Why are leaves yellowing?"
+# Build and push
+gcloud builds submit --tag gcr.io/YOUR_PROJECT/farmsight
+
+# Deploy
+gcloud run deploy farmsight \
+  --image gcr.io/YOUR_PROJECT/farmsight \
+  --platform managed \
+  --region us-central1 \
+  --timeout 120 \
+  --set-env-vars GOOGLE_API_KEY=... \
+  --set-env-vars GEE_SERVICE_ACCOUNT_EMAIL=... \
+  --set-secrets GEE_SERVICE_ACCOUNT_KEY_PATH=gee-key:latest
 ```
 
-The `docker-compose.yml` reads `GOOGLE_API_KEY`, `GEE_SERVICE_ACCOUNT_EMAIL`, and `GEE_SERVICE_ACCOUNT_KEY_PATH` from the host `.env` file, then mounts the key file into the container at `/secrets/gee-key.json`.
-
-> **Architecture note:** Both MCP servers (`sentinel_mcp`, `weather_mcp`) use stdio transport and are launched as subprocesses by their respective ADK agents inside the same container. They do not expose network ports. Separate containers per MCP server would require switching to HTTP/SSE transport, which is not implemented in this version.
+Store the GEE service account JSON in **Secret Manager** as `gee-key` and mount it via `--set-secrets`. This avoids embedding credentials in the container image.
 
 ---
 
@@ -202,13 +261,15 @@ The `docker-compose.yml` reads `GOOGLE_API_KEY`, `GEE_SERVICE_ACCOUNT_EMAIL`, an
 farmsight/
 ├── agent.py                         # ADK web UI entrypoint (exports root_agent)
 ├── main.py                          # CLI entrypoint + report formatter
+├── api/
+│   └── app.py                       # FastAPI app — POST /diagnose, GET /health
 ├── agents/
 │   ├── input_parser.py              # Extracts lat/lon/question from natural language
 │   ├── coordinator.py               # SequentialAgent orchestrator
 │   ├── remote_sensing.py            # Wraps sentinel_mcp via McpToolset
 │   ├── weather_agent.py             # Wraps weather_mcp via McpToolset
 │   ├── synthesis.py                 # Gemini reasoning agent
-│   └── runner.py                    # InMemoryRunner wiring (CLI only)
+│   └── runner.py                    # InMemoryRunner wiring (shared by CLI + API)
 ├── mcp_servers/
 │   ├── sentinel_mcp/                # Sentinel-2 GEE MCP server (stdio)
 │   │   ├── server.py

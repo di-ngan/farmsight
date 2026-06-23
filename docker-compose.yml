@@ -1,15 +1,18 @@
 services:
   farmsight:
     build: .
-    # Pass credentials from the host .env file
+    ports:
+      - "8000:8000"
     environment:
       - GOOGLE_API_KEY=${GOOGLE_API_KEY}
       - GEE_SERVICE_ACCOUNT_EMAIL=${GEE_SERVICE_ACCOUNT_EMAIL}
       - GEE_SERVICE_ACCOUNT_KEY_PATH=/secrets/gee-key.json
+      - CORS_ORIGINS=${CORS_ORIGINS:-*}
     volumes:
-      # Mount the GEE service account JSON key read-only into the container
       - ${GEE_SERVICE_ACCOUNT_KEY_PATH}:/secrets/gee-key.json:ro
-    # Override to run a custom query (examples):
-    #   docker compose run farmsight uv run python main.py --lat 10.7867 --lon 76.6548 --question "Why are leaves yellowing?"
-    #   docker compose run farmsight uv run python main.py --geojson /data/field.geojson --question "Crop status?"
-    command: ["uv", "run", "python", "main.py", "--demo"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
